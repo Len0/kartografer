@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Load the Paper.js library -->
+	<script type="text/javascript" src="js/paper.js"></script>
+	<!-- Define inlined PaperScript associate it with myCanvas -->
+	<script type="text/paperscript" canvas="myCanvas">
+
+	var pathStates = Object.freeze({
+		EMPTY: 0,
+		FIRSTPOINT : 1,
+		HANDLEPOINT : 2,
+		FINALPOINT : 3
+	});
+
+	var pathCurrentState = pathStates.EMPTY;
+	var path = new Path();
+	path.strokeColor = 'red';
+	var newPath = new Path();
+
+
+
+
+
+	function onMouseDown(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		var mouseButton = event.event.button;
+		if(mouseButton == 0){
+			switch (pathCurrentState){
+				case pathStates.EMPTY:
+					path.removeSegments();
+					pathCurrentState = pathStates.FIRSTPOINT;
+					path.add(event.point);
+					break;
+				case pathStates.FIRSTPOINT:
+					pathCurrentState = pathStates.HANDLEPOINT;
+					path.add(event.point);
+					break;
+				case pathStates.HANDLEPOINT:
+					pathCurrentState = pathStates.FINALPOINT;
+					path.add(event.point);
+					alert(new Point(path.segments.length));
+					console.log(path.segments[0]);
+					console.log(path.segments[1]);
+					console.log(path.segments[2]);
+					console.log(path.lastSegment);
+					// Draw bezier
+					curve = new Path(path.firstSegment.point);
+					//curve = new Path(path.firstSegment);
+					curve.strokeColor = 'green';
+					curve.strokeWidth = 2;
+					//curve.quadraticCurveTo(new Point(50,25), new Point(75,25));
+					curve.quadraticCurveTo(path.segments[1].point, path.lastSegment.point);
+					//curve.quadraticCurveTo(new Point(50,25), path.lastSegment);
+					curve.selected = 'true';
+					console.log(curve);
+					break;
+			}
+
+		}
+		else if(mouseButton == 1){
+			path.removeSegments();
+			pathCurrentState = pathStates.EMPTY;
+		}
+	}
+
+	function onMouseMove(event){
+			if(newPath) newPath.remove();
+			if(pathCurrentState == pathStates.FINALPOINT) {
+
+				return;
+			}
+			newPath = new Path(path.lastSegment, event.point);
+			newPath.strokeWidth = 2;
+			newPath.strokeColor = 'black';
+			newPath.dashArray = [10, 4];
+	}
+	</script>
+</head>
+<body>
+	<canvas id="myCanvas" style="width: 100%; height: 100%; resize: both"></canvas>
+</body>
+</html>
