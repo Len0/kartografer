@@ -14,67 +14,71 @@
 	});
 
 	var pathCurrentState = pathStates.EMPTY;
-	var path = new Path();
-	path.strokeColor = 'red';
-	var newPath = new Path();
-
-
-
-
+	var handlePath = new Path({ strokeColor: 'gray' });
+	var liveHandlePath = new Path();
+	var liveCurvePath = new Path();
 
 	function onMouseDown(event) {
 		event.preventDefault();
 		event.stopPropagation();
+
 		var mouseButton = event.event.button;
 		if(mouseButton == 0){
 			switch (pathCurrentState){
 				case pathStates.EMPTY:
-					path.removeSegments();
+					handlePath.removeSegments();
 					pathCurrentState = pathStates.FIRSTPOINT;
-					path.add(event.point);
+					handlePath.add(event.point);
 					break;
 				case pathStates.FIRSTPOINT:
 					pathCurrentState = pathStates.HANDLEPOINT;
-					path.add(event.point);
+					handlePath.add(event.point);
 					break;
 				case pathStates.HANDLEPOINT:
 					pathCurrentState = pathStates.FINALPOINT;
-					path.add(event.point);
-					alert(new Point(path.segments.length));
-					console.log(path.segments[0]);
-					console.log(path.segments[1]);
-					console.log(path.segments[2]);
-					console.log(path.lastSegment);
+					handlePath.add(event.point);
 					// Draw bezier
-					curve = new Path(path.firstSegment.point);
-					//curve = new Path(path.firstSegment);
-					curve.strokeColor = 'green';
-					curve.strokeWidth = 2;
-					//curve.quadraticCurveTo(new Point(50,25), new Point(75,25));
-					curve.quadraticCurveTo(path.segments[1].point, path.lastSegment.point);
-					//curve.quadraticCurveTo(new Point(50,25), path.lastSegment);
+					curve = new Path({
+						segments: [handlePath.firstSegment.point],
+						strokeColor: 'green',
+						strokeWidth: 5
+					});
+					curve.quadraticCurveTo(handlePath.segments[1].point, handlePath.lastSegment.point);
 					curve.selected = 'true';
-					console.log(curve);
 					break;
 			}
-
 		}
 		else if(mouseButton == 1){
-			path.removeSegments();
+			handlePath.removeSegments();
 			pathCurrentState = pathStates.EMPTY;
 		}
 	}
 
 	function onMouseMove(event){
-			if(newPath) newPath.remove();
+			if(liveHandlePath) liveHandlePath.remove();
+			if(liveCurvePath) liveCurvePath.remove();
 			if(pathCurrentState == pathStates.FINALPOINT) {
-
+				handlePath.removeSegments();
+				pathCurrentState = pathStates.EMPTY;
 				return;
 			}
-			newPath = new Path(path.lastSegment, event.point);
-			newPath.strokeWidth = 2;
-			newPath.strokeColor = 'black';
-			newPath.dashArray = [10, 4];
+			if(pathCurrentState == pathStates.FIRSTPOINT || pathCurrentState == pathStates.HANDLEPOINT){
+				liveHandlePath = new Path({
+					segments: [handlePath.lastSegment, event.point],
+					strokeWidth: 1,
+					strokeColor: 'black',
+					dashArray: [10, 4]
+				});
+				if(pathCurrentState == pathStates.HANDLEPOINT){
+					liveCurvePath = new Path({
+						segments: [handlePath.firstSegment.point],
+						strokeColor:'#00CC66',
+						strokeWidth:2,
+						dashArray: [8,4]
+					});
+					liveCurvePath.quadraticCurveTo(handlePath.segments[1].point, event.point);
+				}
+			}
 	}
 	</script>
 </head>
